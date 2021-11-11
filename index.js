@@ -15,6 +15,25 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
+async function run() {
+  try {
+    await client.connect();
+    const database = client.db("mediEye");
+    const productsCollection = database.collection("products");
+
+    app.get("/products", async (req, res) => {
+      console.log("hi");
+      const cursor = productsCollection.find({});
+      const products = await cursor.toArray();
+      res.send(products);
+    });
+  } finally {
+    // await client.close();
+  }
+}
+
+run().catch(console.dir);
+
 app.get("/", (req, res) => {
   res.send("Welcome to medical Imaging");
 });
