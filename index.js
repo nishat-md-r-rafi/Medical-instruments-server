@@ -22,7 +22,6 @@ async function run() {
     const productsCollection = database.collection("products");
 
     app.get("/products", async (req, res) => {
-      console.log("hi");
       const cursor = productsCollection.find({});
       const products = await cursor.toArray();
       res.send(products);
