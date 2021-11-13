@@ -20,11 +20,24 @@ async function run() {
     await client.connect();
     const database = client.db("mediEye");
     const productsCollection = database.collection("products");
+    const usersCollection = database.collection("users");
 
     app.get("/products", async (req, res) => {
       const cursor = productsCollection.find({});
       const products = await cursor.toArray();
       res.send(products);
+    });
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.json(result);
     });
   } finally {
     // await client.close();
