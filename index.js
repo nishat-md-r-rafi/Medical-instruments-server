@@ -14,6 +14,17 @@ const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+async function verifyToken(req, res, next) {
+  if (req.headers?.authorization?.startsWith("Bearer ")) {
+    const token = req.headers.authorization.split(" ")[1];
+
+    try {
+      const decodedUser = await admin.auth().verifyIdToken(token);
+      req.decodedEmail = decodedUser.email;
+    } catch {}
+  }
+  next();
+}
 
 async function run() {
   try {
@@ -43,6 +54,14 @@ async function run() {
       const result = await ordersCollection.insertOne(order);
       console.log(result);
       res.json(result);
+    });
+    app.get("/orders", verifyToken, async (req, res) => {
+      const email = req.query.email.toLowerCase();
+      console.log(email);
+      const query = { email: email };
+      const cursor = ordersCollection.find(query);
+      const orders = await cursor.toArray();
+      res.json(orders);
     });
     app.put("/users", async (req, res) => {
       const user = req.body;
