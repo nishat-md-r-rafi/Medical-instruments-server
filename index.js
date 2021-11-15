@@ -56,7 +56,7 @@ async function run() {
       res.json(result);
     });
     app.get("/orders", verifyToken, async (req, res) => {
-      const email = req.query.email.toLowerCase();
+      const email = req.query.email;
       console.log(email);
       const query = { email: email };
       const cursor = ordersCollection.find(query);
