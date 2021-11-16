@@ -33,6 +33,7 @@ async function run() {
     const productsCollection = database.collection("products");
     const usersCollection = database.collection("users");
     const ordersCollection = database.collection("orders");
+    const reviewsCollection = database.collection("reviews");
 
     app.get("/products", async (req, res) => {
       const cursor = productsCollection.find({});
@@ -55,6 +56,18 @@ async function run() {
       console.log(result);
       res.json(result);
     });
+    //crate reviews
+    app.post("/reviews", async (req, res) => {
+      console.log("hitted");
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
+      console.log(result);
+      res.json(result);
+    });
+    app.get("/reviews", verifyToken, async (req, res) => {
+      res.send([{ name: "rafi", roll: "1615005" }]);
+    });
+
     app.get("/orders", verifyToken, async (req, res) => {
       const email = req.query.email;
       console.log(email);
@@ -74,6 +87,26 @@ async function run() {
         options
       );
       res.json(result);
+    });
+    app.put("/users/admin", verifyToken, async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const requester = req.decodedEmail;
+      if (requester) {
+        const requesterAccount = await usersCollection.findOne({
+          email: requester,
+        });
+        if (requesterAccount.role === "admin") {
+          const filter = { email: user.email };
+          const updateDoc = { $set: { role: "admin" } };
+          const result = await usersCollection.updateOne(filter, updateDoc);
+          res.json(result);
+        }
+      } else {
+        res
+          .status(403)
+          .json({ message: "you do not have access to make admin" });
+      }
     });
   } finally {
     // await client.close();
