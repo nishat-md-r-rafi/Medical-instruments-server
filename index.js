@@ -41,6 +41,13 @@ async function run() {
       res.send(products);
     });
 
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      //   console.log(product, "product api is hit");
+      const result = await productsCollection.insertOne(product);
+      res.json(result);
+    });
+
     app.post("/users", async (req, res) => {
       console.log("hitted");
       const user = req.body;
@@ -65,7 +72,9 @@ async function run() {
       res.json(result);
     });
     app.get("/reviews", verifyToken, async (req, res) => {
-      res.send([{ name: "rafi", roll: "1615005" }]);
+      const cursor = reviewsCollection.find({});
+      const reviews = await cursor.toArray();
+      res.send(reviews);
     });
 
     app.get("/orders", verifyToken, async (req, res) => {
@@ -88,10 +97,22 @@ async function run() {
       );
       res.json(result);
     });
+
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
     app.put("/users/admin", verifyToken, async (req, res) => {
       const user = req.body;
       console.log(user);
       const requester = req.decodedEmail;
+      console.log(requester);
       if (requester) {
         const requesterAccount = await usersCollection.findOne({
           email: requester,
